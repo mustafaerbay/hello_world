@@ -30,25 +30,40 @@ function docker_login() {
     fi
 }
 
-function set_nginx_conf() {
-
-    
-}
 function docker_image_build() {
     local env=${1}
     local image_tag=${2}
 
-    docker build -t ${DOCKER_HUB_USERNAME}/${APP_NAME}:${APP_VERSION}-${BUILD_TIME} 
+    # docker build -t ${DOCKER_HUB_USERNAME}/${APP_NAME}:${APP_VERSION}-${BUILD_TIME}
+    docker build -t ${DOCKER_HUB_USERNAME}/${APP_NAME}:${APP_VERSION} .
 }
 
 function docker_image_push() {
-    docker push ${DOCKER_HUB_USERNAME}/${APP_NAME}:${APP_VERSION}-${BUILD_TIME}
+    docker push ${DOCKER_HUB_USERNAME}/${APP_NAME}:${APP_VERSION}
+}
+
+function docker_test() {
+     docker run -d --name ${APP_NAME}_test -p 8080:8080 ${DOCKER_HUB_USERNAME}/${APP_NAME}:${APP_VERSION}
+     
+     curl -s -o /dev/null -w "%{http_code}" http://localhost:8080 | grep 200 > /dev/null
+     if [[ "${?}" == 0 ]]; then
+        echo "TEST SUCCESS"
+        docker rm -f ${APP_NAME}_test
+     else
+        echo "TEST FAIL"
+        docker rm -f ${APP_NAME}_test
+     fi
+
+     docker scan ${DOCKER_HUB_USERNAME}/${APP_NAME}:${APP_VERSION}
 }
 
 main(){
-    # parameter_check DOCKER_HUB_USERNAME
-    # parameter_check DOCKER_HUB_PASSWORD
-
+    parameter_check DOCKER_HUB_USERNAME
+    parameter_check DOCKER_HUB_PASSWORD
+    docker_image_build
+    docker_image_push
+    docker_test
+    
     case ${1} in 
         test)
             source ${dir}/env/test/variables
@@ -62,7 +77,7 @@ main(){
             ;;
         *)
             source ${dir}/env/default/variables
-
+    esac
 
 }
 
