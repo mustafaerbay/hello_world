@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 dir=$(pwd)
 export DOCKERHUB_USERNAME="${DOCKERHUB_USERNAME}"
 export DOCKERHUB_PASSWORD="${DOCKERHUB_PASSWORD}"
@@ -73,14 +74,17 @@ main(){
     while getopts ":b:t:p:s:" opts; do
         case "${opts}" in
             b)
+                echo "option: ${opts} started"
                 APP_VERSION="${OPTARG}"
                 docker_image_build
                 ;;
             t)
+                echo "option: ${opts} started"
                 APP_VERSION="${OPTARG}"
                 docker_test
                 ;;
             p)
+                echo "option: ${opts} started"
                 parameter_check DOCKERHUB_USERNAME
                 parameter_check DOCKERHUB_PASSWORD
                 APP_VERSION="${OPTARG}"
@@ -88,11 +92,13 @@ main(){
                 docker_image_push
                 ;;
             s)
+                echo "option: ${opts} started"
                 APP_VERSION="${OPTARG}"
                 docker_login
                 docker_scan
                 ;;
             *)
+
                 echo "ERRROR"
                 exit 1
                 docker_image_build
