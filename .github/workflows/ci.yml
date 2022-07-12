@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - 'v1'
+    paths:
+      - 'static/**'
+
+env:
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Declare git branch and sha
+        id: vars
+        shell: bash
+        run: |
+          echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
+      - name: Check branch and sha
+        run: |
+          echo "Branch: ${{ steps.vars.outputs.branch }}"
+          echo "Sha: ${{ steps.vars.outputs.sha_short }}"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Build docker container image
+        run: |
+          ./build.sh -b ${{ steps.vars.outputs.sha_short }}
+
+      - name: Test docker container 
+        run: |
+          ./build.sh -t ${{ steps.vars.outputs.sha_short }}
+
+      - name: Push and Scan docker image 
+        run: |
+          ./build.sh -p ${{ steps.vars.outputs.sha_short }}
+          ./build.sh -s ${{ steps.vars.outputs.sha_short }}

@@ -1,7 +1,7 @@
 #!/bin/bash
 dir=$(pwd)
-export DOCKER_HUB_USERNAME=anatolman
-export DOCKER_HUB_PASSWORD="Anatolman.13"
+export DOCKERHUB_USERNAME=anatolman
+export DOCKERHUB_PASSWORD=""
 
 export APP_NAME="hello_world"
 export APP_VERSION="0.0.1"
@@ -22,7 +22,7 @@ function parameter_check() {
 
 
 function docker_login() {
-    echo "${DOCKER_HUB_PASSWORD}" | docker login -u ${DOCKER_HUB_USERNAME} --password-stdin > /dev/null 2>&1
+    echo "${DOCKERHUB_PASSWORD}" | docker login -u ${DOCKERHUB_USERNAME} --password-stdin > /dev/null 2>&1
     if [[ "${?}" != 0 ]]; then
         echo "docker login failed"
         echo "${FUNCNAME}::::::FAIL"
@@ -34,50 +34,71 @@ function docker_image_build() {
     local env=${1}
     local image_tag=${2}
 
-    # docker build -t ${DOCKER_HUB_USERNAME}/${APP_NAME}:${APP_VERSION}-${BUILD_TIME}
-    docker build -t ${DOCKER_HUB_USERNAME}/${APP_NAME}:${APP_VERSION} .
+    # docker build -t ${DOCKERHUB_USERNAME}/${APP_NAME}:${APP_VERSION}-${BUILD_TIME}
+    docker build -t ${DOCKERHUB_USERNAME}/${APP_NAME}:${APP_VERSION} .
 }
 
 function docker_image_push() {
-    docker push ${DOCKER_HUB_USERNAME}/${APP_NAME}:${APP_VERSION}
+    docker push ${DOCKERHUB_USERNAME}/${APP_NAME}:${APP_VERSION}
 }
 
 function docker_test() {
-     docker run -d --name ${APP_NAME}_test -p 8080:8080 ${DOCKER_HUB_USERNAME}/${APP_NAME}:${APP_VERSION}
-     
-     curl -s -o /dev/null -w "%{http_code}" http://localhost:8080 | grep 200 > /dev/null
-     if [[ "${?}" == 0 ]]; then
-        echo "TEST SUCCESS"
-        docker rm -f ${APP_NAME}_test
-     else
-        echo "TEST FAIL"
-        docker rm -f ${APP_NAME}_test
-     fi
-
-     docker scan ${DOCKER_HUB_USERNAME}/${APP_NAME}:${APP_VERSION}
+    docker run -d --name ${APP_NAME}_test -p 8080:8080 ${DOCKERHUB_USERNAME}/${APP_NAME}:${APP_VERSION}
+    
+    curl -s -o /dev/null -w "%{http_code}" http://localhost:8080 | grep 200 > /dev/null
+    if [[ "${?}" == 0 ]]; then
+    echo "TEST SUCCESS"
+    docker rm -f ${APP_NAME}_test
+    else
+    echo "TEST FAIL"
+    docker rm -f ${APP_NAME}_test
+    fi
 }
 
+function docker_scan() {
+    docker scan ${DOCKERHUB_USERNAME}/${APP_NAME}:${APP_VERSION}
+}
+
+usage() {
+    echo ""
+    echo "Usage: $0 "
+    echo "   [-b --build <APP_VERSION>]"
+    echo "   [-t --test <APP_VERSION>]"
+    echo "   [-p --push <APP_VERSION>]"
+    echo "   [-s --scan <APP_VERSION>]"
+    exit 1
+}
 main(){
-    parameter_check DOCKER_HUB_USERNAME
-    parameter_check DOCKER_HUB_PASSWORD
-    docker_image_build
-    docker_image_push
-    docker_test
-    
-    case ${1} in 
-        test)
-            source ${dir}/env/test/variables
-            ;;
-        prod)
-            source ${dir}/env/prod/variables
-            ;;
-        container)
-            sed -i -e "s|LISTEN_PORT|${nginx_listen_port}|g" -e "s|SERVER_NAME|${nginx_server_name}|g" /etc/nginx/conf.d/custom.conf &&\
-            sed -i -e "s|ENV_INFO|${env_info}|g" /usr/share/nginx/html/index.html
-            ;;
-        *)
-            source ${dir}/env/default/variables
-    esac
+
+    while getopts ":b:t:p:s:" opts; do
+        case "${opts}" in
+            b)
+                APP_VERSION="${APP_VERSION}"_"${OPTARG}"
+                docker_image_build
+                ;;
+            t)
+                APP_VERSION="${APP_VERSION}"_"${OPTARG}"
+                docker_test
+                ;;
+            p)
+                parameter_check DOCKERHUB_USERNAME
+                parameter_check DOCKERHUB_PASSWORD
+                APP_VERSION="${APP_VERSION}"_"${OPTARG}"
+                docker_image_push
+                ;;
+            s)
+                APP_VERSION="${APP_VERSION}"_"${OPTARG}"
+                docker_scan
+                ;;
+            *)
+                echo "ERRROR"
+                exit 1
+                docker_image_build
+                docker_image_push
+                docker_test
+                ;;
+        esac
+    done
 
 }
 
