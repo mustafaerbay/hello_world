@@ -6,6 +6,7 @@ on:
       - 'v1'
     paths:
       - 'static/**'
+  workflow_dispatch:
 
 env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
