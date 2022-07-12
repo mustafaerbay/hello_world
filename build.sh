@@ -1,6 +1,7 @@
+#!/bin/bash
 dir=$(pwd)
-export DOCKERHUB_USERNAME=anatolman
-export DOCKERHUB_PASSWORD=""
+export DOCKERHUB_USERNAME="${DOCKERHUB_USERNAME}"
+export DOCKERHUB_PASSWORD="${DOCKERHUB_PASSWORD}"
 
 export APP_NAME="hello_world"
 export APP_VERSION="0.0.1"
