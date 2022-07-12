@@ -16,6 +16,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Assign variables from file to Env variable
+        run: |
+            cat env/default.variables >> $GITHUB_ENV
+
       - name: Checkout
         uses: actions/checkout@v2
 
@@ -50,6 +54,15 @@ jobs:
       - name: Test docker container 
         run: |
           ./build.sh -t ${{ steps.vars.outputs.sha_short }}
-          docker --help
-          docker --help |grep -i scan
-          ./build.sh -p ${{ steps.vars.outputs.sha_short }}
+
+      - name: Security scan on docker image
+        uses: snyk/actions/docker@master
+        id: docker-image-scan
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.APP_NAME }}:${{ steps.vars.outputs.sha_short }}
+          args: --file=./Dockerfile 
+            --severity-threshold=low
+          sarif: false
