@@ -62,9 +62,13 @@ jobs:
         with:
           image: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.APP_NAME }}:${{ steps.vars.outputs.sha_short }}
           args: --file=./Dockerfile
-            --severity-threshold=medium
+            --severity-threshold=high
           sarif: true
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: snyk.sarif
+      
+      - name: Publish docker image
+        if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
+        run: docker push --all-tags ${{ steps.login-ecr.outputs.registry }}/${{ matrix.repository }}
