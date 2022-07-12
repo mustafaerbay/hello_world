@@ -1,9 +1,7 @@
 #!/bin/bash
 dir=$(pwd)
-# export DOCKERHUB_USERNAME="${DOCKERHUB_USERNAME}"
-# export DOCKERHUB_PASSWORD="${DOCKERHUB_PASSWORD}"
-# echo "DOCKERHUB_USERNAME ${DOCKERHUB_USERNAME}"
-# echo "DOCKERHUB_PASSWORD ${DOCKERHUB_PASSWORD}"
+export DOCKERHUB_USERNAME="${DOCKERHUB_USERNAME}"
+export DOCKERHUB_PASSWORD="${DOCKERHUB_PASSWORD}"
 
 export APP_NAME="hello_world"
 export APP_VERSION="0.0.1"
@@ -75,22 +73,22 @@ main(){
     while getopts ":b:t:p:s:" opts; do
         case "${opts}" in
             b)
-                APP_VERSION="${APP_VERSION}"_"${OPTARG}"
+                APP_VERSION="${OPTARG}"
                 docker_image_build
                 ;;
             t)
-                APP_VERSION="${APP_VERSION}"_"${OPTARG}"
+                APP_VERSION="${OPTARG}"
                 docker_test
                 ;;
             p)
                 parameter_check DOCKERHUB_USERNAME
                 parameter_check DOCKERHUB_PASSWORD
-                APP_VERSION="${APP_VERSION}"_"${OPTARG}"
+                APP_VERSION="${OPTARG}"
                 docker_login
                 docker_image_push
                 ;;
             s)
-                APP_VERSION="${APP_VERSION}"_"${OPTARG}"
+                APP_VERSION="${OPTARG}"
                 docker_login
                 docker_scan
                 ;;
