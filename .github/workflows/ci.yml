@@ -16,13 +16,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        
       - name: Assign variables from file to Env variable
         run: |
             cat env/default/variables >> $GITHUB_ENV
-
-      - name: Checkout
-        uses: actions/checkout@v2
-
       - name: Declare git branch and sha
         id: vars
         shell: bash
