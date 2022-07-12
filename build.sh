@@ -1,12 +1,12 @@
 #!/bin/bash
-set -x
+# set -x
 dir=$(pwd)
 [[ -f env/default/variables ]] && source env/default/variables
 export DOCKERHUB_USERNAME="${DOCKERHUB_USERNAME}"
 export DOCKERHUB_PASSWORD="${DOCKERHUB_PASSWORD}"
 
-export APP_NAME="${APP_NAME}:-hello_world"
-export APP_VERSION="${APP_VERSION}:-0.0.1"
+export APP_NAME="${APP_NAME:-"hello_world"}"
+export APP_VERSION="${APP_VERSION:-"0.0.1"}"
 
 export BUILD_TIME="$(date +%H%M-%m%d%Y)"
 echo "build time: $BUILD_TIME"
