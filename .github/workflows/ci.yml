@@ -44,14 +44,12 @@ jobs:
       #     password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build docker image
-        env:
-          IMAGE_TAG: ${GITHUB_SHA::8}
         run: |
-          ./build.sh -b ${{ env.IMAGE_TAG }}
+          ./build.sh -b ${{ steps.vars.outputs.sha_short }}
 
       - name: Test docker container 
         run: |
-          ./build.sh -t ${{ env.IMAGE_TAG }}
+          ./build.sh -t ${{ steps.vars.outputs.sha_short }}
           docker --help
           docker --help |grep -i scan
-          ./build.sh -p ${{ env.IMAGE_TAG }}
+          ./build.sh -p ${{ steps.vars.outputs.sha_short }}
