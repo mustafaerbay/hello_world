@@ -1,4 +1,3 @@
-#!/bin/bash
 dir=$(pwd)
 export DOCKERHUB_USERNAME=anatolman
 export DOCKERHUB_PASSWORD=""
