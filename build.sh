@@ -1,7 +1,7 @@
 #!/bin/bash
 set -x
 dir=$(pwd)
-if [[ -f env/default/variables ]] && source env/default/variables
+[[ -f env/default/variables ]] && source env/default/variables
 export DOCKERHUB_USERNAME="${DOCKERHUB_USERNAME}"
 export DOCKERHUB_PASSWORD="${DOCKERHUB_PASSWORD}"
 
