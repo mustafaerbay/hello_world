@@ -53,22 +53,6 @@ jobs:
       - name: Test docker container 
         run: |
           ./build.sh -t ${{ steps.vars.outputs.sha_short }}
-  security:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        
-      - name: Assign variables from file to Env variable
-        run: |
-            cat env/default/variables >> $GITHUB_ENV
-      - name: Declare git branch and sha
-        id: vars
-        shell: bash
-        run: |
-          echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-
       - name: Security scan on docker image
         uses: snyk/actions/docker@master
         id: docker-image-scan
@@ -77,7 +61,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           image: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.APP_NAME }}:${{ steps.vars.outputs.sha_short }}
-          args: --file=./Dockerfile 
+          args: --file=./Dockerfile
             --severity-threshold=low
             --sarif-file-output=./${{ env.APP_NAME }}.docker.snyk.sarif
           sarif: true
