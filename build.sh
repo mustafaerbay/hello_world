@@ -86,10 +86,12 @@ main(){
                 parameter_check DOCKERHUB_USERNAME
                 parameter_check DOCKERHUB_PASSWORD
                 APP_VERSION="${APP_VERSION}"_"${OPTARG}"
+                docker_login
                 docker_image_push
                 ;;
             s)
                 APP_VERSION="${APP_VERSION}"_"${OPTARG}"
+                docker_login
                 docker_scan
                 ;;
             *)
