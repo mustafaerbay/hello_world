@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: Assign variables from file to Env variable
         run: |
-            cat env/default.variables >> $GITHUB_ENV
+            cat env/default/variables >> $GITHUB_ENV
 
       - name: Checkout
         uses: actions/checkout@v2
