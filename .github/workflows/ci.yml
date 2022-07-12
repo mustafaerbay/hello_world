@@ -53,7 +53,9 @@ jobs:
       - name: Test docker container 
         run: |
           ./build.sh -t ${{ steps.vars.outputs.sha_short }}
-
+  security:
+    runs-on: ubuntu-latest
+    steps:
       - name: Security scan on docker image
         uses: snyk/actions/docker@master
         id: docker-image-scan
@@ -64,4 +66,9 @@ jobs:
           image: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.APP_NAME }}:${{ steps.vars.outputs.sha_short }}
           args: --file=./Dockerfile 
             --severity-threshold=low
-          sarif: false
+            --sarif-file-output=./${{ env.APP_NAME }}.docker.snyk.sarif
+          sarif: true
+      - name: Upload result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: ./${{ env.APP_NAME }}.docker.snyk.sarif
