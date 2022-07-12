@@ -1,0 +1,69 @@
+#!/bin/bash
+dir=$(pwd)
+export DOCKER_HUB_USERNAME=anatolman
+export DOCKER_HUB_PASSWORD="Anatolman.13"
+
+export APP_NAME="hello_world"
+export APP_VERSION="0.0.1"
+
+export BUILD_TIME="$(date +%H%M-%m%d%Y)"
+echo "build time: $BUILD_TIME"
+#exit 1
+
+function parameter_check() {
+    env | grep -i "${1}" > /dev/null 2>&1
+    if [[ "${?}" != 0 ]]; then
+        echo "${FUNCNAME}::::::parameter missing: ${1}"
+        exit 1
+    else
+        echo "${FUNCNAME}::::::SUCCESS"
+    fi
+}
+
+
+function docker_login() {
+    echo "${DOCKER_HUB_PASSWORD}" | docker login -u ${DOCKER_HUB_USERNAME} --password-stdin > /dev/null 2>&1
+    if [[ "${?}" != 0 ]]; then
+        echo "docker login failed"
+        echo "${FUNCNAME}::::::FAIL"
+        exit 1
+    fi
+}
+
+function set_nginx_conf() {
+
+    
+}
+function docker_image_build() {
+    local env=${1}
+    local image_tag=${2}
+
+    docker build -t ${DOCKER_HUB_USERNAME}/${APP_NAME}:${APP_VERSION}-${BUILD_TIME} 
+}
+
+function docker_image_push() {
+    docker push ${DOCKER_HUB_USERNAME}/${APP_NAME}:${APP_VERSION}-${BUILD_TIME}
+}
+
+main(){
+    # parameter_check DOCKER_HUB_USERNAME
+    # parameter_check DOCKER_HUB_PASSWORD
+
+    case ${1} in 
+        test)
+            source ${dir}/env/test/variables
+            ;;
+        prod)
+            source ${dir}/env/prod/variables
+            ;;
+        container)
+            sed -i -e "s|LISTEN_PORT|${nginx_listen_port}|g" -e "s|SERVER_NAME|${nginx_server_name}|g" /etc/nginx/conf.d/custom.conf &&\
+            sed -i -e "s|ENV_INFO|${env_info}|g" /usr/share/nginx/html/index.html
+            ;;
+        *)
+            source ${dir}/env/default/variables
+
+
+}
+
+main $@

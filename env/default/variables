@@ -1,0 +1,3 @@
+nginx_server_name=default.helloworld.com
+nginx_listen_port=8080
+env_info=default

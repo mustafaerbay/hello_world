@@ -1,0 +1,3 @@
+nginx_server_name=test.helloworld.com
+nginx_listen_port=8082
+env_info=test

@@ -1,0 +1,2 @@
+nginx_server_name=dev.helloworld.com
+nginx_listen_port=8080
