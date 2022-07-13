@@ -79,6 +79,15 @@ jobs:
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.APP_NAME }}:${{ steps.vars.outputs.sha_short }}
           build-args: |
             VERSION=${{ steps.vars.outputs.sha_short }}
-      - name: Publish docker image
-        if: ${{ env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_PASSWORD != '' }}
-        run: docker push --all-tags ${{ env.DOCKERHUB_USERNAME }}/${{ env.APP_NAME }}
+      - name: Build for multiplatform
+        env: 
+          image_tag: ${{ steps.vars.outputs.sha_short }}
+
+        run: |
+          docker buildx build \
+            --push \
+            --platform=linux/amd64,linux/arm64,linux/386 \
+            --tag=${{ secrets.DOCKERHUB_USERNAME }}/${{ env.APP_NAME }}:${{ env.image_tag }} .
+      # - name: Publish docker image
+      #   if: ${{ env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_PASSWORD != '' }}
+      #   run: docker push --all-tags ${{ env.DOCKERHUB_USERNAME }}/${{ env.APP_NAME }}
