@@ -1,5 +1,6 @@
-FROM nginx:latest
-RUN apt remove -y curl && \
+FROM nginx:1.23
+RUN apt-get update && apt-get upgrade -y && apt-get clean
+RUN apt-get remove curl -y && \
     rm -rf /etc/nginx/conf.d/*.conf && \
     chown -R nginx:nginx /var/cache/nginx/ && \
     touch /var/run/nginx.pid && \

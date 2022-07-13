@@ -1,5 +1,5 @@
 #!/bin/bash
-# set -x
+set -u
 dir=$(pwd)
 [[ -f env/default/variables ]] && source env/default/variables
 export DOCKERHUB_USERNAME="${DOCKERHUB_USERNAME}"
@@ -12,16 +12,6 @@ export BUILD_TIME="$(date +%H%M-%m%d%Y)"
 echo "build time: $BUILD_TIME"
 #exit 1
 
-function parameter_check() {
-    env | grep -i "${1}" > /dev/null 2>&1
-    if [[ "${?}" != 0 ]]; then
-        echo "${FUNCNAME}::::::parameter missing: ${1}"
-        exit 1
-    else
-        echo "${FUNCNAME}::::::SUCCESS"
-    fi
-}
-
 
 function docker_login() {
     echo "${DOCKERHUB_PASSWORD}" | docker login -u ${DOCKERHUB_USERNAME} --password-stdin > /dev/null 2>&1
@@ -33,9 +23,6 @@ function docker_login() {
 }
 
 function docker_image_build() {
-    local env=${1}
-    local image_tag=${2}
-
     # docker build -t ${DOCKERHUB_USERNAME}/${APP_NAME}:${APP_VERSION}-${BUILD_TIME}
     docker build -t ${DOCKERHUB_USERNAME}/${APP_NAME}:${APP_VERSION} .
 }
@@ -45,15 +32,20 @@ function docker_image_push() {
 }
 
 function docker_test() {
-    docker run -d --name ${APP_NAME}_test -p 8080:8080 ${DOCKERHUB_USERNAME}/${APP_NAME}:${APP_VERSION}
-    
-    curl -s -o /dev/null -w "%{http_code}" http://localhost:8080 | grep 200 > /dev/null
+    port=8080
+    until ! $(docker ps | grep -q ${port}) ; do
+        port=$(( port + 1 ))
+        echo "port is : $port"
+    done
+    docker run -d --name ${APP_NAME}_test -p ${port}:8080 ${DOCKERHUB_USERNAME}/${APP_NAME}:${APP_VERSION}
+
+    curl -s -o /dev/null -w "%{http_code}" http://localhost:${port} | grep 200 > /dev/null
     if [[ "${?}" == 0 ]]; then
-    echo "TEST SUCCESS"
-    docker rm -f ${APP_NAME}_test
+        echo "TEST SUCCESS"
+        docker rm -f ${APP_NAME}_test
     else
-    echo "TEST FAIL"
-    docker rm -f ${APP_NAME}_test
+        echo "TEST FAIL"
+        docker rm -f ${APP_NAME}_test
     fi
 }
 
@@ -64,43 +56,60 @@ function docker_scan() {
 usage() {
     echo ""
     echo "Usage: $0 "
-    echo "   [-b --build <APP_VERSION>]"
-    echo "   [-t --test <APP_VERSION>]"
-    echo "   [-p --push <APP_VERSION>]"
-    echo "   [-s --scan <APP_VERSION>]"
+    echo "   [-b <image_tag>]  -Docker image build with image tag"
+    echo "   [-t <image_tag>]  -Docker Test given image"
+    echo "   [-p <image_tag>]  -Docker push given image to docker hub"
+    echo "   [-s <image_tag>]  -Docker scan"
+    echo "   [-a <image_tag>]  -Run all steps"
     exit 1
 }
 main(){
 
-    while getopts ":b:t:p:s:" opts; do
+    while getopts ":b:t:p:s:a:" opts; do
         case "${opts}" in
             b)
                 echo "option: ${opts} started"
+                echo "Docker image build"
                 APP_VERSION="${OPTARG}"
                 docker_image_build
                 ;;
             t)
                 echo "option: ${opts} started"
+                echo "Docker Test"
                 APP_VERSION="${OPTARG}"
                 docker_test
                 ;;
             p)
                 echo "option: ${opts} started"
-                parameter_check DOCKERHUB_USERNAME
-                parameter_check DOCKERHUB_PASSWORD
+                echo "Docker image push"
                 APP_VERSION="${OPTARG}"
                 docker_login
                 docker_image_push
                 ;;
             s)
                 echo "option: ${opts} started"
+                echo "Docker image vulnerability scan"
                 APP_VERSION="${OPTARG}"
                 docker_login
                 docker_scan
                 ;;
+            a)
+                echo "option: ${opts} started"
+                echo "Docker run all steps"
+                APP_VERSION="${OPTARG}"
+                echo "######################### Step:1 Docker image build"
+                docker_image_build
+                echo "######################### Step:2 Docker image push"
+                docker_image_push
+                echo "######################### Step:3 Docker image test"
+                docker_test
+                echo "######################### Step:4 Docker image scan"
+                docker_scan
+                ;;
             *)
 
-                echo "ERRROR"
+                echo ""
+                usage
                 exit 1
                 docker_image_build
                 docker_image_push

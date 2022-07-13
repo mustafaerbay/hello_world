@@ -7,6 +7,11 @@ on:
     paths:
       - 'static/**'
   workflow_dispatch:
+    inputs:
+      job:
+        description: 'Deploy to the environment'
+        required: true
+        default: 'deploy-prod'
 
 env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -77,3 +82,32 @@ jobs:
             --push \
             --platform=linux/amd64,linux/arm64,linux/386 \
             --tag=${{ secrets.DOCKERHUB_USERNAME }}/${{ env.APP_NAME }}:${{ env.image_tag }} .
+  deploy-prod:
+    needs: build  
+    runs-on: ubuntu-latest
+    steps:
+    - name: Manual approve for deployment
+      uses: trstringer/manual-approval@v1
+      env: 
+          image_tag: ${{ steps.vars.outputs.sha_short }}
+      with:
+        secret: ${{ github.TOKEN }}
+        approvers: mustafaerbay
+        minimum-approvals: 1
+        issue-title: "Deploying image_tag"
+        run: echo deploying
+
+    - uses: actions/checkout@v2
+    - name: Run Kubernetes tools
+      uses: stefanprodan/kube-tools@v1
+      with:
+        kubectl: 1.23.0
+        kustomize: 4.4.1
+        helm: 2.17.0
+        helmv3: 3.7.2
+        kubeseal: 0.16.0
+        kubeval: v0.16.1
+        conftest: 0.28.3
+        kubeconform: 0.4.12
+        command: |
+          echo "Run conftest"
