@@ -20,6 +20,9 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs: 
+      image_tag: ${{ steps.vars.outputs.sha_short }}
+      app_name: ${{ steps.vars.outputs.app_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -33,6 +36,7 @@ jobs:
         run: |
           echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+          echo "::set-output name=app_name::$(env |grep APP_NAME | cut -d '=' -f 2)"
 
       - name: Check branch and sha
         run: |
@@ -86,28 +90,33 @@ jobs:
     needs: build  
     runs-on: ubuntu-latest
     steps:
-    - name: Manual approve for deployment
-      uses: trstringer/manual-approval@v1
-      env: 
-          image_tag: ${{ steps.vars.outputs.sha_short }}
-      with:
-        secret: ${{ github.TOKEN }}
-        approvers: mustafaerbay
-        minimum-approvals: 1
-        issue-title: "Deploying image_tag"
-        run: echo deploying
+      - name: Manual approve for deployment
+        uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ github.TOKEN }}
+          approvers: mustafaerbay
+          minimum-approvals: 1
+          issue-title: "Deploying application version ${{ needs.build.outputs.app_name }}:${{ needs.build.outputs.sha_short }} "
 
-    - uses: actions/checkout@v2
-    - name: Run Kubernetes tools
-      uses: stefanprodan/kube-tools@v1
-      with:
-        kubectl: 1.23.0
-        kustomize: 4.4.1
-        helm: 2.17.0
-        helmv3: 3.7.2
-        kubeseal: 0.16.0
-        kubeval: v0.16.1
-        conftest: 0.28.3
-        kubeconform: 0.4.12
-        command: |
-          echo "Run conftest"
+      - name: checkout again
+        uses: actions/checkout@v2
+
+      - name: Declare git sha
+        id: deploy-prod-vars
+        shell: bash
+        run: |
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+      - name: Run Kubernetes tools
+        if: ${{ steps.deploy-prod-vars.outputs.sha_short == needs.build.outputs.sha_short }}
+        uses: stefanprodan/kube-tools@v1
+        with:
+          kubectl: 1.23.0
+          kustomize: 4.4.1
+          helm: 2.17.0
+          helmv3: 3.7.2
+          kubeseal: 0.16.0
+          kubeval: v0.16.1
+          conftest: 0.28.3
+          kubeconform: 0.4.12
+          command: |
+            echo "Run conftest"
