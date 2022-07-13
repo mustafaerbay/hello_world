@@ -96,7 +96,7 @@ jobs:
           secret: ${{ github.TOKEN }}
           approvers: mustafaerbay
           minimum-approvals: 1
-          issue-title: "Deploying application version ${{ needs.build.outputs.app_name }}:${{ needs.build.outputs.sha_short }} "
+          issue-title: "Deploying application version ${{ needs.build.outputs.app_name }}:${{ needs.build.outputs.image_tag }} "
 
       - name: checkout again
         uses: actions/checkout@v2
