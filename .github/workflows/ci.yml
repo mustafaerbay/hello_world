@@ -23,6 +23,8 @@ jobs:
     outputs: 
       image_tag: ${{ steps.vars.outputs.sha_short }}
       app_name: ${{ steps.vars.outputs.app_name }}
+      branch: ${{ steps.vars.outputs.branch }}
+      
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -37,6 +39,7 @@ jobs:
           echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
           echo "::set-output name=app_name::$(env |grep APP_NAME | cut -d '=' -f 2)"
+          
 
       - name: Check branch and sha
         run: |
@@ -106,6 +109,7 @@ jobs:
         shell: bash
         run: |
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+          echo "::set-output name=latest_commit::$(git log -1)"
       - name: Run Kubernetes tools
         if: ${{ steps.deploy-prod-vars.outputs.sha_short == needs.build.outputs.sha_short }}
         uses: stefanprodan/kube-tools@v1
@@ -120,3 +124,13 @@ jobs:
           kubeconform: 0.4.12
           command: |
             echo "Run conftest"
+            echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+      
+      - name: create issue if there was a commit between versions
+        if: ${{ steps.deploy-prod-vars.outputs.sha_short != needs.build.outputs.sha_short }}
+        uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          action_id: ${{ github.ref }}
+          branch: ${{ needs.build.outputs.branch }}
+          latest_commit: ${{ steps.deploy-prod-vars.outputs.latest_commit }}
