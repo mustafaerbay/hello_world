@@ -124,11 +124,13 @@ jobs:
           kubeconform: 0.4.12
           command: |
             echo "Run conftest"
-            echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
       
       - name: create issue if there was a commit between versions
         if: ${{ steps.deploy-prod-vars.outputs.sha_short != needs.build.outputs.sha_short }}
         uses: JasonEtco/create-an-issue@v2
+        with:
+          update_existing: true
+          search_existing: all
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           action_id: ${{ github.ref }}
