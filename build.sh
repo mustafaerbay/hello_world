@@ -2,16 +2,12 @@
 set -u
 dir=$(pwd)
 [[ -f env/default/variables ]] && source env/default/variables
+[[ -f .env ]] && source .env
 export DOCKERHUB_USERNAME="${DOCKERHUB_USERNAME}"
 export DOCKERHUB_PASSWORD="${DOCKERHUB_PASSWORD}"
 
 export APP_NAME="${APP_NAME:-"hello_world"}"
 export APP_VERSION="${APP_VERSION:-"0.0.1"}"
-
-export BUILD_TIME="$(date +%H%M-%m%d%Y)"
-echo "build time: $BUILD_TIME"
-#exit 1
-
 
 function docker_login() {
     echo "${DOCKERHUB_PASSWORD}" | docker login -u ${DOCKERHUB_USERNAME} --password-stdin > /dev/null 2>&1
@@ -23,7 +19,6 @@ function docker_login() {
 }
 
 function docker_image_build() {
-    # docker build -t ${DOCKERHUB_USERNAME}/${APP_NAME}:${APP_VERSION}-${BUILD_TIME}
     docker build -t ${DOCKERHUB_USERNAME}/${APP_NAME}:${APP_VERSION} .
     docker tag ${DOCKERHUB_USERNAME}/${APP_NAME}:${APP_VERSION} ${DOCKERHUB_USERNAME}/${APP_NAME}:latest
 }
