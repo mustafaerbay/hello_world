@@ -7,10 +7,17 @@ Serve static html file with nginx
 ## Features
 
 - Build and test container locally with build.sh
+![buildsh_usage](screenshots/buildsh_usage.jpg "buildsh_usage")
 - k8s deployment
-- Manuel control of github action with creating issue with commit id
+![k8s_deploy](screenshots/k8s_deploy.jpg "k8s_deploy")
+- Manually control check for deployment 
+![waiting approval](screenshots/waiting_approval.jpg "waiting_approval")
 - Cross platform image build with buildx
-- Scan conatiner image vulnerabilities with synk
+![buildx_build](screenshots/buildx_cross_platform.jpg "")
+- Scan container image vulnerabilities with synk. [High severity vulnerability results](https://github.com/mustafaerbay/hello_world/security/code-scanning)
+![scan_result](screenshots/code_scanning_results.jpg "")
+- Docker Hub repository [url](https://hub.docker.com/repository/docker/anatolman/hello_world)
+![docker_hub](screenshots/docker_hub.jpg "")
 
 ## Deployment
 

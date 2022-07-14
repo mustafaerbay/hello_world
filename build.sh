@@ -73,15 +73,17 @@ function docker_scan() {
 usage() {
     echo ""
     echo "Usage: $0 "
-    echo "   [-b <image_tag>]  -Docker image build with image tag"
-    echo "   [-t <image_tag>]  -Docker Test given image"
-    echo "   [-p <image_tag>]  -Docker push given image to docker hub"
-    echo "   [-s <image_tag>]  -Docker scan"
-    echo "   [-a <image_tag>]  -Run all steps"
+    echo "   [-b <tag>]  -Docker image build with image tag"
+    echo "   [-t <tag>]  -Docker Test given image"
+    echo "   [-p <tag>]  -Docker push given image to docker hub"
+    echo "   [-s <tag>]  -Docker scan"
+    echo "   [-a <tag>]  -Run all steps"
     exit 1
 }
 main(){
-
+    if [[ $# == 0 ]];then
+        usage
+    fi
     while getopts ":b:t:p:s:a:" opts; do
         case "${opts}" in
             b)
