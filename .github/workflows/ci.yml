@@ -126,15 +126,17 @@ jobs:
       # kube-tools provide us to run kubectl command and besides that run some extra tools.
       # The if condition checks if there is unexpected commit during delivery phase
       - name: Run Kubernetes tools
+        env:
+          branch: ${{ needs.build.outputs.branch }}
         if: ${{ steps.deploy-prod-vars.outputs.sha_short == needs.build.outputs.image_tag }}
         uses: stefanprodan/kube-tools@v1
         with:
           kubectl: 1.23.0
           command: |
-            kubectl apply -f k8s/application/storage/pv/nginx_pv.yml
-            kubectl apply -f k8s/application/storage/pv-claim/nginx_pvc.yml
-            kubectl apply -f k8s/application/workloads/statefulset/nginx.yml
-            kubectl apply -f k8s/application/service/nginx.yml
+            kubectl apply -f https://raw.githubusercontent.com/mustafaerbay/hello_world/${{ env.branch }}/k8s/application/storage/pv/nginx_pv.yml
+            kubectl apply -f https://raw.githubusercontent.com/mustafaerbay/hello_world/${{ env.branch }}/k8s/application/storage/pv-claim/nginx_pvc.yml
+            kubectl apply -f https://raw.githubusercontent.com/mustafaerbay/hello_world/${{ env.branch }}/k8s/application/workloads/statefulset/nginx.yml
+            kubectl apply -f https://raw.githubusercontent.com/mustafaerbay/hello_world/${{ env.branch }}/k8s/application/service/nginx.yml
       # 
       # https://github.com/marketplace/actions/create-an-issue
       - name: create issue if there was a commit between versions
