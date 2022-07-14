@@ -126,7 +126,7 @@ jobs:
       # kube-tools provide us to run kubectl command and besides that run some extra tools.
       # The if condition checks if there is unexpected commit during delivery phase
       - name: Run Kubernetes tools
-        if: ${{ steps.deploy-prod-vars.outputs.sha_short == needs.build.outputs.sha_short }}
+        if: ${{ steps.deploy-prod-vars.outputs.sha_short == needs.build.outputs.image_tag }}
         uses: stefanprodan/kube-tools@v1
         with:
           kubectl: 1.23.0
@@ -138,7 +138,7 @@ jobs:
       # 
       # https://github.com/marketplace/actions/create-an-issue
       - name: create issue if there was a commit between versions
-        if: ${{ steps.deploy-prod-vars.outputs.sha_short != needs.build.outputs.sha_short }}
+        if: ${{ steps.deploy-prod-vars.outputs.sha_short != needs.build.outputs.image_tag }}
         uses: JasonEtco/create-an-issue@v2
         with:
           update_existing: true
