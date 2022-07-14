@@ -63,10 +63,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
-
-      # - name: Build docker image
-      #   run: |
-      #     ./build.sh -b ${{ steps.vars.outputs.sha_short }}
           
       - name: Build for multiplatform
         env: 
@@ -100,6 +96,7 @@ jobs:
     needs: build  
     runs-on: ubuntu-latest
     steps:
+      # https://github.com/trstringer/manual-approval
       # This step waits for manual approval to deliver code to the related environment
       - name: Manual approve for deployment
         uses: trstringer/manual-approval@v1
@@ -120,7 +117,6 @@ jobs:
           echo "::set-output name=latest_commit::$(git log -1)"
       
       # https://github.com/stefanprodan/kube-tools
-      # https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/
       # https://github.com/marketplace/actions/update-and-apply-kubernetes-configuration-files
       #
       # kube-tools provide us to run kubectl command and besides that run some extra tools.
