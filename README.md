@@ -63,12 +63,13 @@ Go to the browser
   http://localhost:8080
 ```
 
+## Environment Variables
 
-## Roadmap
+To run this project, you will need to have below add the following environment variables to your .env file
 
-- Add functionality for different environment deployment
+`DOCKERHUB_USERNAME`
 
-## Screenshots
+`DOCKERHUB_PASSWORD`
 
 
 
