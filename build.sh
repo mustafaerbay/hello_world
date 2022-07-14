@@ -94,7 +94,7 @@ main(){
                 echo "option: ${opts} started"
                 echo "Docker Test"
                 APP_VERSION="${OPTARG}"
-                docker_test
+                docker_test "false"
                 ;;
             p)
                 echo "option: ${opts} started"
@@ -130,9 +130,6 @@ main(){
                 echo ""
                 usage
                 exit 1
-                docker_image_build
-                docker_image_push
-                docker_test
                 ;;
         esac
     done
