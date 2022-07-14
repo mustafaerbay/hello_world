@@ -75,7 +75,7 @@ jobs:
           docker buildx build \
             --push \
             --platform=linux/amd64,linux/arm64,linux/386 \
-            --tag=${{ secrets.DOCKERHUB_USERNAME }}/${{ env.APP_NAME }}:latest
+            --tag=${{ secrets.DOCKERHUB_USERNAME }}/${{ env.APP_NAME }}:latest \
             --tag=${{ secrets.DOCKERHUB_USERNAME }}/${{ env.APP_NAME }}:${{ env.image_tag }} .
 
       - name: Test docker container 
