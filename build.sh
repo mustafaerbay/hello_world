@@ -25,32 +25,54 @@ function docker_login() {
 function docker_image_build() {
     # docker build -t ${DOCKERHUB_USERNAME}/${APP_NAME}:${APP_VERSION}-${BUILD_TIME}
     docker build -t ${DOCKERHUB_USERNAME}/${APP_NAME}:${APP_VERSION} .
+    docker tag ${DOCKERHUB_USERNAME}/${APP_NAME}:${APP_VERSION} ${DOCKERHUB_USERNAME}/${APP_NAME}:latest
 }
 
 function docker_image_push() {
     docker push ${DOCKERHUB_USERNAME}/${APP_NAME}:${APP_VERSION}
+    docker push ${DOCKERHUB_USERNAME}/${APP_NAME}:latest
 }
 
 function docker_test() {
+    local isLocal=${1}
     port=8080
     until ! $(docker ps | grep -q ${port}) ; do
         port=$(( port + 1 ))
-        echo "port is : $port"
     done
-    docker run -d --name ${APP_NAME}_test -p ${port}:8080 ${DOCKERHUB_USERNAME}/${APP_NAME}:${APP_VERSION}
+    docker run -d --name ${APP_NAME}_test_${port} -p ${port}:8080 ${DOCKERHUB_USERNAME}/${APP_NAME}:${APP_VERSION} > /dev/null 2>&1
 
     curl -s -o /dev/null -w "%{http_code}" http://localhost:${port} | grep 200 > /dev/null
     if [[ "${?}" == 0 ]]; then
         echo "TEST SUCCESS"
-        docker rm -f ${APP_NAME}_test
+        if [[ ${isLocal} == "true" ]]; then
+            echo ""
+            echo ""
+            echo "Go to below link from browser to check !!!"
+            echo "  http://localhost:${port}"
+            echo ""
+            echo ""
+            echo "For container logs"
+            echo "  docker logs ${APP_NAME}_test_${port}"
+            echo ""
+            echo ""
+            echo "to remove container"
+            echo "  docker rm -f ${APP_NAME}_test_${port}"
+            echo ""
+            echo ""
+            echo "to check docker scan result open docker_scan_result.txt"
+            echo "  cat docker_scan_result.txt"
+
+        else
+            docker rm -f ${APP_NAME}_test_${port}
+        fi
     else
         echo "TEST FAIL"
-        docker rm -f ${APP_NAME}_test
+        docker rm -f ${APP_NAME}_test_${port}
     fi
 }
 
 function docker_scan() {
-    docker scan ${DOCKERHUB_USERNAME}/${APP_NAME}:${APP_VERSION}
+    docker scan ${DOCKERHUB_USERNAME}/${APP_NAME}:${APP_VERSION} >> docker_scan_result.txt
 }
 
 usage() {
@@ -99,12 +121,14 @@ main(){
                 APP_VERSION="${OPTARG}"
                 echo "######################### Step:1 Docker image build"
                 docker_image_build
-                echo "######################### Step:2 Docker image push"
+                echo "######################### Step:2 Docker login"
+                docker_login
+                echo "######################### Step:3 Docker image push"
                 docker_image_push
-                echo "######################### Step:3 Docker image test"
-                docker_test
                 echo "######################### Step:4 Docker image scan"
                 docker_scan
+                echo "######################### Step:5 Docker image test"
+                docker_test "true"
                 ;;
             *)
 

@@ -1,3 +1,4 @@
+#specific nginx version prefered
 FROM nginx:1.23
 RUN apt-get update && apt-get upgrade -y && apt-get clean
 RUN apt-get remove curl -y && \

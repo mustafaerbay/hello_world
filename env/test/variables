@@ -1,3 +1,6 @@
 nginx_server_name=test.helloworld.com
 nginx_listen_port=8082
 env_info=test
+
+APP_NAME=hello_world
+APP_VERSION=0.0.1

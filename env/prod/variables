@@ -1,3 +1,6 @@
 nginx_server_name=prod.helloworld.com
 nginx_listen_port=8081
 env_info=prod
+
+APP_NAME=hello_world
+APP_VERSION=0.0.1
