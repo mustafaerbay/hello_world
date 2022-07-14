@@ -1,0 +1,33 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  serviceName: "nginx"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: nginx
+        image: anatolman/hello_world:latest
+        ports:
+        - containerPort: 80
+          name: web
+        volumeMounts:
+        - name: pv-storage
+          mountPath: /var/www/mytest
+# https://kubernetes.io/docs/concepts/storage/persistent-volumes/
+      volumes:
+        - name: pv-storage
+          persistentVolumeClaim:
+            claimName: nginx-pvc

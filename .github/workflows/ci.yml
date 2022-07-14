@@ -75,6 +75,7 @@ jobs:
           docker buildx build \
             --push \
             --platform=linux/amd64,linux/arm64,linux/386 \
+            --tag=${{ secrets.DOCKERHUB_USERNAME }}/${{ env.APP_NAME }}:latest .
             --tag=${{ secrets.DOCKERHUB_USERNAME }}/${{ env.APP_NAME }}:${{ env.image_tag }} .
 
       - name: Test docker container 
@@ -99,6 +100,7 @@ jobs:
     needs: build  
     runs-on: ubuntu-latest
     steps:
+      # This step waits for manual approval to deliver code to the related environment
       - name: Manual approve for deployment
         uses: trstringer/manual-approval@v1
         with:
@@ -116,21 +118,25 @@ jobs:
         run: |
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
           echo "::set-output name=latest_commit::$(git log -1)"
+      
+      # https://github.com/stefanprodan/kube-tools
+      # https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/
+      # https://github.com/marketplace/actions/update-and-apply-kubernetes-configuration-files
+      #
+      # kube-tools provide us to run kubectl command and besides that run some extra tools.
+      # The if condition checks if there is unexpected commit during delivery phase
       - name: Run Kubernetes tools
         if: ${{ steps.deploy-prod-vars.outputs.sha_short == needs.build.outputs.sha_short }}
         uses: stefanprodan/kube-tools@v1
         with:
           kubectl: 1.23.0
-          kustomize: 4.4.1
-          helm: 2.17.0
-          helmv3: 3.7.2
-          kubeseal: 0.16.0
-          kubeval: v0.16.1
-          conftest: 0.28.3
-          kubeconform: 0.4.12
           command: |
-            echo "Run conftest"
-      
+            kubectl apply -f k8s/application/storage/pv/nginx_pv.yml
+            kubectl apply -f k8s/application/storage/pv-claim/nginx_pvc.yml
+            kubectl apply -f k8s/application/workloads/statefulset/nginx.yml
+            kubectl apply -f k8s/application/service/nginx.yml
+      # 
+      # https://github.com/marketplace/actions/create-an-issue
       - name: create issue if there was a commit between versions
         if: ${{ steps.deploy-prod-vars.outputs.sha_short != needs.build.outputs.sha_short }}
         uses: JasonEtco/create-an-issue@v2
