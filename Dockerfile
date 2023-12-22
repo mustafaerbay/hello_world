@@ -1,5 +1,5 @@
 #specific nginx version prefered
-FROM nginx:1.23
+FROM nginx:1.25.3
 RUN apt-get update && apt-get upgrade -y && apt-get clean
 RUN apt-get remove curl -y && \
     rm -rf /etc/nginx/conf.d/*.conf && \
